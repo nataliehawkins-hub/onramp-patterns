@@ -1,0 +1,10 @@
+<!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;background:rgb(210,206,203);overflow:hidden}canvas{display:block;width:100%;height:100%}</style></head><body><canvas id="c"></canvas><script>
+const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
+const A=[228,242,34],B=[210,206,203];
+const NUM_COLS=23,PULSE_MS=1200,PULSE_REST_MS=600,PULSE_CYCLE=1800;
+const BMAX=0.61;
+function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
+resize();window.addEventListener('resize',resize);
+function draw(ts){const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;const maxDist=Math.sqrt(cx*cx+cy*cy);ctx.fillStyle='rgb('+B+')';ctx.fillRect(0,0,W,H);const colW=W/NUM_COLS,cellH=H/26,NUM_ROWS=Math.ceil(H/cellH)+4;for(let ci=0;ci<NUM_COLS;ci++){const x=ci*colW,colCx=x+colW/2;for(let ri=0;ri<NUM_ROWS;ri++){const rowCy=(ri-2)*cellH+cellH/2,dx=colCx-cx,dy=rowCy-cy,dist=Math.sqrt(dx*dx+dy*dy)/maxDist;const falloff=Math.pow(1-Math.min(dist,1),1.5);const delay=dist*1.2*PULSE_MS,e2=ts-delay,lt=((e2%PULSE_CYCLE)+PULSE_CYCLE)%PULSE_CYCLE;let pf=lt<PULSE_MS?Math.sin((lt/PULSE_MS)*Math.PI):0;const iF=0.0003+((ci*7+ri*13)%17)*0.00003,iP=((ci*31+ri*17)%100)/100,idle=Math.sin(ts*iF+iP*Math.PI*2)*0.06*(1-falloff);const bf=Math.max(0.05,Math.min(0.98,0.15+(pf*(BMAX-0.15)*falloff)+idle));const bH=bf*cellH,rowY=(ri-2)*cellH,y=rowY+cellH/2-bH/2;ctx.fillStyle='rgb('+B+')';ctx.fillRect(Math.floor(x),Math.floor(rowY),Math.ceil(colW)+1,Math.ceil(cellH));ctx.fillStyle='rgb('+A+')';ctx.fillRect(Math.floor(x),Math.floor(y),Math.ceil(colW)+1,Math.ceil(bH));}}requestAnimationFrame(draw);}
+requestAnimationFrame(draw);
+</script></body></html>
