@@ -1,13 +1,28 @@
 <!DOCTYPE html><html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}html,body{width:100%;height:100%;background:rgb(228,242,34);overflow:hidden}canvas{display:block;width:100%;height:100%}</style></head><body><canvas id="c"></canvas><script>
 const canvas=document.getElementById('c'),ctx=canvas.getContext('2d');
 const A=[94,84,14],B=[228,242,34];
-const NUM_COLS=23,LOOP_MS=30000,PHASE_SPREAD=0.490;
-const BRIGHT_MAX=0.82,BRIGHT_MIN=0.12,MAX_DRIFT=1.90;
-const SNAP_PX=50,SNAP_MOVE_MS=840,SNAP_REST_MS=2000,SNAP_CYCLE_MS=2840;
-function eio(t){return -(Math.cos(Math.PI*t)-1)/2;}
-function getSnap(idx,ts){const e=ts-idx*100,cy=Math.floor(e/SNAP_CYCLE_MS),lt=((e%SNAP_CYCLE_MS)+SNAP_CYCLE_MS)%SNAP_CYCLE_MS;let mf=0;if(lt>=SNAP_REST_MS)mf=eio((lt-SNAP_REST_MS)/SNAP_MOVE_MS);return(cy+mf)*SNAP_PX;}
 function resize(){canvas.width=window.innerWidth;canvas.height=window.innerHeight;}
 resize();window.addEventListener('resize',resize);
-function draw(ts){const W=canvas.width,H=canvas.height,t=(ts%LOOP_MS)/LOOP_MS;ctx.fillStyle='rgb('+B+')';ctx.fillRect(0,0,W,H);const colW=W/NUM_COLS,cellH=H/26;for(let ci=0;ci<NUM_COLS;ci++){const d=Math.abs(ci-(NUM_COLS-1)/2)/((NUM_COLS-1)/2),phase=d*PHASE_SPREAD,ct=(t+phase)%1,sine=Math.sin(ct*Math.PI*2);const bf=BRIGHT_MIN+((sine+1)/2)*(BRIGHT_MAX-BRIGHT_MIN);const bH=bf*cellH;const dir=ci<NUM_COLS/2?-1:1,drift=sine*MAX_DRIFT*cellH*dir;const sd=Math.round(Math.abs(ci-(NUM_COLS-1)/2)),snap=getSnap(sd,ts)*dir;const off=((drift-snap)%cellH+cellH*20)%cellH;const x=ci*colW;let y=-cellH*3+off;while(y<H+cellH){ctx.fillStyle='rgb('+A+')';ctx.fillRect(Math.floor(x),Math.floor(y),Math.ceil(colW)+1,Math.ceil(bH));ctx.fillStyle='rgb('+B+')';ctx.fillRect(Math.floor(x),Math.floor(y+bH),Math.ceil(colW)+1,Math.ceil(cellH-bH));y+=cellH;}}requestAnimationFrame(draw);}
-requestAnimationFrame(draw);
-</script></body></html>
+const SNAP_PX=50,SNAP_MOVE_MS=840,SNAP_REST_MS=2000,SNAP_CYCLE_MS=2840,SNAP_STAGGER_MS=100;
+function eio(t){return -(Math.cos(Math.PI*t)-1)/2;}
+function getSnapY(ci,ts){const e=ts-ci*SNAP_STAGGER_MS,cy=Math.floor(e/SNAP_CYCLE_MS),lt=((e%SNAP_CYCLE_MS)+SNAP_CYCLE_MS)%SNAP_CYCLE_MS;let mf=0;if(lt>=SNAP_REST_MS)mf=eio((lt-SNAP_REST_MS)/SNAP_MOVE_MS);return(cy+mf)*SNAP_PX;}
+function draw(ts){
+  const W=canvas.width,H=canvas.height,t=(ts%30000)/30000;
+  ctx.fillStyle='rgb('+B+')';ctx.fillRect(0,0,W,H);
+  const colW=W/23,cellH=H/26;
+  for(let ci=0;ci<23;ci++){
+    const d=Math.abs(ci-11)/11,phase=d*0.55,ct=(t+phase)%1,sine=Math.sin(ct*Math.PI*2);
+    const bf=0.12+((sine+1)/2)*0.70,bH=bf*cellH,dH=(1-bf)*cellH;
+    const dir=ci<11?-1:1,drift=sine*1.8*cellH*dir;
+    const sd=Math.round(Math.abs(ci-11)),snap=getSnapY(sd,ts)*dir;
+    const off=((drift-snap)%cellH+cellH*20)%cellH;
+    let y=-cellH*3+off;
+    while(y<H+cellH){
+      ctx.fillStyle='rgb('+A+')';ctx.fillRect(Math.floor(ci*colW),Math.floor(y),Math.ceil(colW)+1,Math.ceil(bH));
+      ctx.fillStyle='rgb('+B+')';ctx.fillRect(Math.floor(ci*colW),Math.floor(y+bH),Math.ceil(colW)+1,Math.ceil(dH));
+      y+=cellH;
+    }
+  }
+  requestAnimationFrame(draw);
+}
+requestAnimationFrame(draw);</script></body></html>
